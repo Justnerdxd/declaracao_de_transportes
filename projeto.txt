@@ -13,3 +13,4 @@ meu_projeto_declaracao/
 ├── numero_arquivamento.txt    # Arquivo de texto para armazenar o número de arquivamento.
 │
 └── main.py                    # Arquivo principal que executa a interface e a lógica do programa.
+

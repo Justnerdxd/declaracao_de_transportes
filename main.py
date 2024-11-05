@@ -1,64 +1,70 @@
 import tkinter as tk
 from tkinter import messagebox
-from modules.database import criar_bd, salvar_declaracao
-from modules.arquivamento import obter_numero_arquivamento, incrementar_numero_arquivamento
-from modules.pdf_generator import gerar_pdf
+from modules.excel_generator import gerar_excel_com_modelo  # Importe a função para gerar o Excel com modelo
+import datetime
 
-# Configuração inicial do banco de dados
-criar_bd()
-
-def salvar_dados():
-    numero_declaracao = obter_numero_arquivamento()
+def coletar_dados_interface():
+    # Coletar dados da interface gráfica
     dados = {
-        "numero_declaracao": str(numero_declaracao),
-        "destinatario": destinatario_entry.get(),
-        "cidade": cidade_entry.get(),
-        "transportadora": transportadora_entry.get(),
-        "cnpj_transportadora": cnpj_transportadora_entry.get(),
-        "motorista": motorista_entry.get(),
-        "cpf_motorista": cpf_motorista_entry.get()
+        'Motorista': motorista_entry.get(),
+        'CPF_RG': cpf_rg_entry.get(),
+        'Telefone': telefone_entry.get(),
+        'Cidade': cidade_entry.get(),
+        'Transportadora': transportadora_entry.get(),
+        'CNPJ_Transportadora': cnpj_transportadora_entry.get(),
+        'Placa': placa_entry.get(),
+        'Data': datetime.datetime.now().strftime("%d/%m/%Y"),
+        'Hora': datetime.datetime.now().strftime("%H:%M"),
+        'Notas_Fiscais': [
+            {'numero': '12345', 'peso': '100kg', 'volumes': '10', 'observacao': 'Nenhuma'},
+            # Adicione outras notas fiscais conforme necessário
+        ]
     }
 
-    if all(dados.values()):
-        salvar_declaracao(dados)
-        caminho_pdf = gerar_pdf(dados)
-        incrementar_numero_arquivamento()
-        messagebox.showinfo("Sucesso", f"PDF gerado com sucesso! Salvo em: {caminho_pdf}")
-    else:
-        messagebox.showerror("Erro", "Preencha todos os campos.")
+    # Caminho do arquivo Excel de modelo e de saída
+    modelo_path = "TEST (1).xlsm"
+    output_excel_path = "decl_transporte_preenchido.xlsm"
 
-# Interface gráfica
+    # Chame a função para preencher o documento Excel com o modelo e os dados
+    gerar_excel_com_modelo(modelo_path, output_excel_path, dados)
+
+    # Exibir mensagem de sucesso
+    messagebox.showinfo("Sucesso", f"Documento Excel gerado com sucesso: {output_excel_path}")
+
+# Configuração da janela principal
 root = tk.Tk()
-root.title("Formulário de Declaração de Transporte")
-root.geometry("500x400")
+root.title("Declaração de Transporte")
 
-# Campos de entrada
-tk.Label(root, text="Destinatário").grid(row=0, column=0, sticky="e")
-destinatario_entry = tk.Entry(root)
-destinatario_entry.grid(row=0, column=1)
+# Campos de entrada para os dados
+tk.Label(root, text="Nome do Motorista:").grid(row=0, column=0, sticky="e")
+motorista_entry = tk.Entry(root, width=40)
+motorista_entry.grid(row=0, column=1)
 
-tk.Label(root, text="Cidade").grid(row=1, column=0, sticky="e")
-cidade_entry = tk.Entry(root)
-cidade_entry.grid(row=1, column=1)
+tk.Label(root, text="CPF/RG do Motorista:").grid(row=1, column=0, sticky="e")
+cpf_rg_entry = tk.Entry(root, width=40)
+cpf_rg_entry.grid(row=1, column=1)
 
-tk.Label(root, text="Transportadora").grid(row=2, column=0, sticky="e")
-transportadora_entry = tk.Entry(root)
-transportadora_entry.grid(row=2, column=1)
+tk.Label(root, text="Telefone do Motorista:").grid(row=2, column=0, sticky="e")
+telefone_entry = tk.Entry(root, width=40)
+telefone_entry.grid(row=2, column=1)
 
-tk.Label(root, text="CNPJ da Transportadora").grid(row=3, column=0, sticky="e")
-cnpj_transportadora_entry = tk.Entry(root)
-cnpj_transportadora_entry.grid(row=3, column=1)
+tk.Label(root, text="Cidade:").grid(row=3, column=0, sticky="e")
+cidade_entry = tk.Entry(root, width=40)
+cidade_entry.grid(row=3, column=1)
 
-tk.Label(root, text="Motorista").grid(row=4, column=0, sticky="e")
-motorista_entry = tk.Entry(root)
-motorista_entry.grid(row=4, column=1)
+tk.Label(root, text="Nome da Transportadora:").grid(row=4, column=0, sticky="e")
+transportadora_entry = tk.Entry(root, width=40)
+transportadora_entry.grid(row=4, column=1)
 
-tk.Label(root, text="CPF/RG do Motorista").grid(row=5, column=0, sticky="e")
-cpf_motorista_entry = tk.Entry(root)
-cpf_motorista_entry.grid(row=5, column=1)
+tk.Label(root, text="CNPJ da Transportadora:").grid(row=5, column=0, sticky="e")
+cnpj_transportadora_entry = tk.Entry(root, width=40)
+cnpj_transportadora_entry.grid(row=5, column=1)
 
-# Botão de salvar
-salvar_button = tk.Button(root, text="Salvar e Gerar PDF", command=salvar_dados)
-salvar_button.grid(row=6, columnspan=2)
+tk.Label(root, text="Placa do Veículo:").grid(row=6, column=0, sticky="e")
+placa_entry = tk.Entry(root, width=40)
+placa_entry.grid(row=6, column=1)
+
+# Botão para gerar o documento Excel
+tk.Button(root, text="Gerar Documento Excel", command=coletar_dados_interface).grid(row=50, column=0, columnspan=5, pady=20)
 
 root.mainloop()

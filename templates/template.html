@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <title>Declaração de Transportes</title>
+</head>
+<body>
+    <h1>DECLARAÇÃO DE TRANSPORTES</h1>
+    <p>Screw Ind. Metalmecânica Eireli</p>
+    <p>CNPJ: 00.397.908/0001-80</p>
+
+    <h2>Informações Gerais</h2>
+    <p><strong>Motorista:</strong> {{ motorista }}</p>
+    <p><strong>CPF/RG:</strong> {{ cpf_rg }}</p>
+    <p><strong>Telefone:</strong> {{ telefone }}</p>
+    <p><strong>Cidade:</strong> {{ cidade }}</p>
+    <p><strong>Transportadora:</strong> {{ transportadora }}</p>
+    <p><strong>CNPJ da Transportadora:</strong> {{ cnpj_transportadora }}</p>
+    <p><strong>Placa do Veículo:</strong> {{ placa }}</p>
+    <p><strong>Data:</strong> {{ data }}</p>
+    <p><strong>Hora:</strong> {{ hora }}</p>
+
+    <h2>Notas Fiscais</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nº Nota Fiscal</th>
+                <th>Peso Descrito</th>
+                <th>Nº Volumes</th>
+                <th>Observações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nota in notas_fiscais %}
+            <tr>
+                <td>{{ nota.numero }}</td>
+                <td>{{ nota.peso }}</td>
+                <td>{{ nota.volumes }}</td>
+                <td>{{ nota.observacao }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

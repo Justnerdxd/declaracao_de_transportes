@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
@@ -81,3 +82,45 @@ def gerar_pdf_com_dados(dados):
     # Salvar o PDF
     c.save()
     return caminho_arquivo  # Retorna o caminho do PDF gerado
+=======
+# modules/pdf_generator.py
+
+from pdfrw import PdfReader, PdfWriter
+
+def preencher_pdf_campos(input_pdf_path, output_pdf_path, dados):
+    """
+    Preenche os campos de um PDF usando o pdfrw.
+    
+    Parâmetros:
+    - input_pdf_path: Caminho do PDF modelo com campos de formulário.
+    - output_pdf_path: Caminho para salvar o PDF preenchido.
+    - dados: Dicionário com os dados a serem preenchidos nos campos do PDF. 
+             As chaves devem corresponder aos nomes dos campos do PDF.
+    """
+    # Carrega o PDF modelo
+    template = PdfReader(input_pdf_path)
+    
+    # Itera sobre as páginas do PDF
+    for page in template.pages:
+        annotations = page['/Annots']
+        if annotations:
+            for annotation in annotations:
+                field = annotation.getObject()
+                
+                # Nome do campo
+                field_name = field['/T'][1:-1]  # Remove os parênteses do nome do campo
+
+                # Verifica se o campo está no dicionário de dados
+                if field_name in dados:
+                    # Atualiza o campo com o valor correspondente em `dados`
+                    field.update({
+                        '/V': dados[field_name],  # Valor a ser inserido no campo
+                        '/Ff': 1  # Define o campo como somente leitura após preenchido
+                    })
+
+    # Salva o PDF preenchido no caminho especificado
+    writer = PdfWriter()          # Cria uma instância do PdfWriter
+    writer.addpages(template.pages)  # Adiciona as páginas do PDF modelo
+    writer.write(output_pdf_path)     # Salva o arquivo preenchido no caminho de saída
+    print(f"PDF preenchido e salvo em: {output_pdf_path}")
+>>>>>>> Stashed changes

@@ -4,6 +4,22 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment
 import datetime
 
+def set_value_in_merged_cell(ws, cell, value):
+    """
+    Define o valor na célula superior esquerda de um intervalo mesclado.
+    
+    Parâmetros:
+    - ws: Worksheet onde o valor será inserido.
+    - cell: Célula alvo para definir o valor.
+    - value: Valor a ser inserido na célula.
+    """
+    for merged_range in ws.merged_cells.ranges:
+        if cell in merged_range:
+            top_left_cell = merged_range.coord.split(":")[0]
+            ws[top_left_cell].value = value
+            return
+    ws[cell].value = value
+
 def gerar_excel_com_modelo(modelo_path, output_excel_path, dados):
     """
     Preenche um modelo Excel existente com os dados fornecidos.
@@ -13,28 +29,27 @@ def gerar_excel_com_modelo(modelo_path, output_excel_path, dados):
     - output_excel_path: Caminho para salvar o documento Excel preenchido.
     - dados: Dicionário com os dados a serem inseridos no documento.
     """
-    # Carrega o arquivo modelo
     wb = load_workbook(modelo_path, keep_vba=True)  # `keep_vba=True` mantém macros, se houver
     ws = wb.active  # Seleciona a primeira planilha ativa, ajuste se necessário
 
-    # Preenche os dados na primeira célula da área mesclada
-    ws["B2"].value = dados['Motorista']             # Ajuste as células conforme o layout do modelo
-    ws["B3"].value = dados['CPF_RG']
-    ws["B4"].value = dados['Telefone']
-    ws["B5"].value = dados['Cidade']
-    ws["B6"].value = dados['Placa']
-    ws["B7"].value = dados['Transportadora']
-    ws["B8"].value = dados['CNPJ_Transportadora']
-    ws["B9"].value = dados['Data']
-    ws["B10"].value = dados['Hora']
+    # Preenche os dados nas células, usando a função auxiliar para células mescladas
+    set_value_in_merged_cell(ws, "D9", dados['Motorista'])
+    set_value_in_merged_cell(ws, "N9", dados['CPF_RG'])
+    set_value_in_merged_cell(ws, "U9", dados['Telefone'])
+    set_value_in_merged_cell(ws, "D6", dados['Cidade'])
+    set_value_in_merged_cell(ws, "V7", dados['Placa'])
+    set_value_in_merged_cell(ws, "E7", dados['Transportadora'])
+    set_value_in_merged_cell(ws, "D8", dados['CNPJ_Transportadora'])
+    set_value_in_merged_cell(ws, "P8", dados['Data'])
+    set_value_in_merged_cell(ws, "V8", dados['Hora'])
 
-    # Tabela de Notas Fiscais (assumindo que começa na linha 12)
-    start_row = 12
+    # Preenche a tabela de Notas Fiscais (assumindo que começa na linha 12)
+    start_row = 13
     for i, nota in enumerate(dados['Notas_Fiscais'], start=start_row):
-        ws[f"A{i}"].value = nota['numero']
-        ws[f"B{i}"].value = nota['peso']
-        ws[f"C{i}"].value = nota['volumes']
-        ws[f"D{i}"].value = nota['observacao']
+        set_value_in_merged_cell(ws, f"B{i}", nota['numero'])
+        set_value_in_merged_cell(ws, f"J{i}", nota['peso'])
+        set_value_in_merged_cell(ws, f"N{i}", nota['volumes'])
+        set_value_in_merged_cell(ws, f"R{i}", nota['observacao'])
 
     # Salva o documento Excel com os dados preenchidos
     wb.save(output_excel_path)

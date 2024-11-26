@@ -1,0 +1,91 @@
+unction onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('PDF')
+      .addItem('Gerar PDF', 'gerarPDF') // Adiciona a opção de gerar PDF no menu
+      .addToUi();
+}
+
+function gerarPDF() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var abaRelatorio = ss.getSheetByName('Relatório');
+  var pastaDestino = DriveApp.getFolderById('1NtahJgyCaa5B7jsadivNj-g_uYrDdfLL'); // ID da pasta para salvar PDFs
+
+  // Definindo o ID da planilha e a faixa a ser exportada
+  var id = '1WYxN_Y2ZPL2b3vlihMxeywxyNViFdRTN1505uuGykCk';
+  var gid = '793349960'; // GID da aba "Relatório"
+  
+  // URL para exportar a área desejada (A:H até a linha 48) em A4
+  var url = 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=pdf&gid=' + gid +
+            '&range=A1:H48' + 
+            '&size=A4' + 
+            '&portrait=true' + // Modo retrato
+            '&fitw=true' + // Ajusta a largura
+            '&sheetnames=false&printtitle=false' + 
+            '&pagenumbers=false' + 
+            '&gridlines=false' + 
+            '&fzr=false'; // Não exibir linhas fixas
+
+  // Configurações adicionais para o PDF
+  var options = {
+    headers: {
+      'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
+    }
+  };
+
+  // Fazendo a requisição para exportar como PDF
+  var response = UrlFetchApp.fetch(url, options);
+  var blobPDF = response.getBlob().setName('Relatorio_' + new Date().toISOString().slice(0, 10) + '.pdf');
+
+  // Salva o arquivo PDF na pasta
+  var arquivoPDF = pastaDestino.createFile(blobPDF);
+  
+  // Exibe uma mensagem no log com o link para o arquivo PDF
+  Logger.log('Arquivo PDF criado: ' + arquivoPDF.getUrl());
+  SpreadsheetApp.getUi().alert('PDF gerado com sucesso: ' + arquivoPDF.getUrl());
+}
+
+function onEdit(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var abaRelatorio = ss.getSheetByName('Relatório');
+  var abaEntrada = ss.getSheetByName('Entrada');
+
+  // Verifica se a célula editada é a célula C9 da aba "Relatório"
+  if (e.range.getSheet().getName() === 'Relatório' && e.range.getA1Notation() === 'C9') {
+    var codigoSelecionado = e.range.getValue(); // Captura o código selecionado
+    if (!codigoSelecionado) {
+      Logger.log('Código vazio ou não selecionado.');
+      return; // Se o código estiver vazio, não faz nada
+    }
+
+    var dadosEntrada = abaEntrada.getRange('A:Z').getValues(); // Obter todos os dados da aba 'Entrada'
+    
+    // Itera pelos dados da aba 'Entrada' e compara o código selecionado
+    for (var i = 0; i < dadosEntrada.length; i++) {
+      if (dadosEntrada[i][1] == codigoSelecionado) { // Verifica se o código na coluna B da aba 'Entrada' é igual ao código selecionado
+
+        // Preenche os dados conforme mapeamento
+        abaRelatorio.getRange('C7').setValue(dadosEntrada[i][0]); // Cliente (coluna A)
+        abaRelatorio.getRange('D21').setValue(dadosEntrada[i][3]); // Código (coluna B)
+        
+        // Preencher mais 20 campos genéricos (adicione conforme necessário)
+        abaRelatorio.getRange('D34').setValue(dadosEntrada[i][4]); 
+        abaRelatorio.getRange('D35').setValue(dadosEntrada[i][5]); 
+        abaRelatorio.getRange('D36').setValue(dadosEntrada[i][6]); 
+        abaRelatorio.getRange('D37').setValue(dadosEntrada[i][7]); 
+        abaRelatorio.getRange('D38').setValue(dadosEntrada[i][8]); 
+        abaRelatorio.getRange('D39').setValue(dadosEntrada[i][9]); 
+        abaRelatorio.getRange('D40').setValue(dadosEntrada[i][10]); 
+        abaRelatorio.getRange('D41').setValue(dadosEntrada[i][11]); 
+        abaRelatorio.getRange('D42').setValue(dadosEntrada[i][12]); 
+        abaRelatorio.getRange('D43').setValue(dadosEntrada[i][13]); 
+        abaRelatorio.getRange('D44').setValue(dadosEntrada[i][14]); 
+        abaRelatorio.getRange('D45').setValue(dadosEntrada[i][15]); 
+        // Continue preenchendo as células restantes aqui...
+
+        Logger.log('Relatório preenchido com sucesso.');
+        break;
+      }
+    }
+  }
+}
+

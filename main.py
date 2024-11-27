@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from modules.excel_generator import gerar_excel_com_modelo  # Função para gerar o Excel com modelo
 import datetime
+import os  # Import para abrir o Excel automaticamente
 
 # Lista para armazenar entradas de notas fiscais
 notas_fiscais_entries = []
@@ -69,11 +70,26 @@ def coletar_dados_interface():
         'Notas_Fiscais': notas_fiscais
     }
 
+    # Caminho do modelo e saída do Excel
     modelo_path = "TEST (1).xlsm"
-    output_excel_path = "decl_transporte_preenchido.xlsm"
+    output_excel_path = f"decl_transporte_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsm"
 
+    # Geração do Excel
     gerar_excel_com_modelo(modelo_path, output_excel_path, dados)
+
+    # Abrir o Excel gerado automaticamente
+    abrir_excel(output_excel_path)
+
     messagebox.showinfo("Sucesso", f"Documento Excel gerado com sucesso: {output_excel_path}")
+
+def abrir_excel(caminho):
+    """
+    Função para abrir automaticamente o arquivo Excel gerado.
+    """
+    try:
+        os.startfile(caminho)
+    except Exception as e:
+        messagebox.showerror("Erro", f"Não foi possível abrir o arquivo Excel.\nErro: {e}")
 
 def adicionar_nota_fiscal():
     # Adiciona um conjunto de campos para uma nova nota fiscal
@@ -161,4 +177,3 @@ generate_button = ttk.Button(main_frame, text="Gerar Documento Excel", command=c
 generate_button.grid(row=100, column=0, columnspan=4, pady=20)
 
 root.mainloop()
-

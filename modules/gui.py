@@ -1,10 +1,18 @@
+import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 from modules.database import buscar_transportadora, buscar_cliente
 from modules.excel_generator import gerar_excel_com_modelo
 
+def criar_pasta_output():
+    """Certifica-se de que a pasta 'output' exista."""
+    try:
+        if not os.path.exists("output"):
+            os.makedirs("output")
+    except Exception as e:
+        raise RuntimeError(f"Erro ao criar a pasta 'output': {e}")
+
 def iniciar_interface():
-    # Funções para buscar os nomes de cliente e transportadora
     def atualizar_nome_cliente():
         """Atualiza o nome do cliente com base no código digitado."""
         codigo = cliente_entry.get().strip()
@@ -41,6 +49,14 @@ def iniciar_interface():
 
     def gerar_excel():
         """Coleta os dados da interface e gera um arquivo Excel."""
+        criar_pasta_output()  # Garante que a pasta 'output' exista
+
+        # Verifica se o modelo existe
+        modelo_path = "assets/modelo_declaracao.xlsx"
+        if not os.path.exists(modelo_path):
+            messagebox.showerror("Erro", f"Modelo Excel não encontrado: {modelo_path}")
+            return
+
         dados = {
             "Codigo_Cliente": cliente_entry.get().strip(),
             "Codigo_Transportadora": transportadora_entry.get().strip(),
@@ -68,8 +84,15 @@ def iniciar_interface():
             return
 
         try:
-            gerar_excel_com_modelo("assets/modelo_declaracao.xlsm", "output/decl_transporte.xlsm", dados)
-            messagebox.showinfo("Sucesso", "Arquivo Excel gerado com sucesso!")
+            output_path = os.path.abspath("output/decl_transporte.xlsx")  # Caminho absoluto do arquivo
+            gerar_excel_com_modelo(modelo_path, output_path, dados)
+            messagebox.showinfo("Sucesso", f"Arquivo Excel gerado com sucesso em:\n{output_path}")
+
+            # Abrir o arquivo Excel gerado automaticamente
+            if os.name == 'nt':  # Windows
+                os.startfile(output_path)
+            else:  # macOS ou Linux
+                os.system(f"open {output_path}")
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao gerar Excel: {e}")
 

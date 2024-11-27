@@ -4,7 +4,9 @@ from modules.database import buscar_transportadora, buscar_cliente
 from modules.excel_generator import gerar_excel_com_modelo
 
 def iniciar_interface():
+    # Funções para buscar os nomes de cliente e transportadora
     def atualizar_nome_cliente():
+        """Atualiza o nome do cliente com base no código digitado."""
         codigo = cliente_entry.get().strip()
         if not codigo.isdigit() or len(codigo) != 6:
             nome_cliente_label.config(text="Código inválido")
@@ -17,8 +19,11 @@ def iniciar_interface():
                 nome_cliente_label.config(text=resultado.iloc[0]['nome'])
         except FileNotFoundError:
             messagebox.showerror("Erro", "Base de dados não encontrada.")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao buscar cliente: {e}")
 
     def atualizar_nome_transportadora():
+        """Atualiza o nome da transportadora com base no código digitado."""
         codigo = transportadora_entry.get().strip()
         if not codigo.isdigit() or len(codigo) != 6:
             nome_transportadora_label.config(text="Código inválido")
@@ -31,8 +36,11 @@ def iniciar_interface():
                 nome_transportadora_label.config(text=resultado.iloc[0]['nome'])
         except FileNotFoundError:
             messagebox.showerror("Erro", "Base de dados não encontrada.")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao buscar transportadora: {e}")
 
     def gerar_excel():
+        """Coleta os dados da interface e gera um arquivo Excel."""
         dados = {
             "Codigo_Cliente": cliente_entry.get().strip(),
             "Codigo_Transportadora": transportadora_entry.get().strip(),
@@ -43,6 +51,7 @@ def iniciar_interface():
             "Notas_Fiscais": []
         }
 
+        # Coleta os dados das notas fiscais
         for entry in notas_fiscais_entries:
             numero = entry['numero'].get()
             peso = entry['peso'].get()
@@ -65,6 +74,7 @@ def iniciar_interface():
             messagebox.showerror("Erro", f"Erro ao gerar Excel: {e}")
 
     def adicionar_nota_fiscal():
+        """Adiciona um novo conjunto de campos para uma nova nota fiscal."""
         row = len(notas_fiscais_entries) + 8
         nota_fields = {
             'numero': ttk.Entry(root, width=10),
@@ -79,10 +89,12 @@ def iniciar_interface():
         nota_fields['volumes'].grid(row=row, column=5, padx=5)
         notas_fiscais_entries.append(nota_fields)
 
+    # Configuração da janela principal
     root = tk.Tk()
     root.title("Declaração de Transporte")
     root.geometry("800x600")
 
+    # Campos principais
     ttk.Label(root, text="Código do Cliente:").grid(row=0, column=0, pady=5, sticky="e")
     cliente_entry = ttk.Entry(root, width=15)
     cliente_entry.grid(row=0, column=1, pady=5)
@@ -113,6 +125,7 @@ def iniciar_interface():
     placa_entry = ttk.Entry(root, width=15)
     placa_entry.grid(row=5, column=1, pady=5)
 
+    # Seção de notas fiscais
     ttk.Label(root, text="Notas Fiscais:").grid(row=6, column=0, pady=10, sticky="w")
     notas_fiscais_entries = []
 

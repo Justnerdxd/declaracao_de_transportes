@@ -48,39 +48,45 @@ def iniciar_interface():
             messagebox.showerror("Erro", f"Erro ao buscar transportadora: {e}")
 
     def gerar_excel():
-        """Coleta os dados da interface e gera um arquivo Excel."""
-        criar_pasta_output()  # Garante que a pasta 'output' exista
+        criar_pasta_output()
 
-        # Verifica se o modelo existe
         modelo_path = "assets/modelo_declaracao.xlsx"
         if not os.path.exists(modelo_path):
             messagebox.showerror("Erro", f"Modelo Excel não encontrado: {modelo_path}")
             return
 
+        # Buscar dados do cliente
+        cliente_codigo = cliente_entry.get().strip()
+        cliente_dados = buscar_cliente(cliente_codigo)
+        cliente_nome = cliente_dados.iloc[0]['nome'] if not cliente_dados.empty else "Cliente não encontrado"
+        cliente_cidade = cliente_dados.iloc[0]['cidade'] if not cliente_dados.empty else "N/A"
+
+        # Buscar dados da transportadora
+        transportadora_codigo = transportadora_entry.get().strip()
+        transportadora_dados = buscar_transportadora(transportadora_codigo)
+        transportadora_nome = transportadora_dados.iloc[0]['nome'] if not transportadora_dados.empty else "Transportadora não encontrada"
+        transportadora_cnpj = transportadora_dados.iloc[0]['cnpj'] if not transportadora_dados.empty else "N/A"
+
+        # Preenche os dados
         dados = {
-            "Codigo_Cliente": cliente_entry.get().strip(),
-            "Codigo_Transportadora": transportadora_entry.get().strip(),
-            "Motorista": motorista_entry.get().strip(),
-            "Telefone": telefone_entry.get().strip(),
-            "CPF": cpf_entry.get().strip(),
+            "Codigo_Cliente": cliente_codigo,
+            "Codigo_Transportadora": transportadora_codigo,
+            "Motorista": motorista_entry.get().strip() or " ",
+            "Telefone": telefone_entry.get().strip() or " ",
+            "CPF": cpf_entry.get().strip() or " ",
             "Placa": placa_entry.get().strip(),
-            "Notas_Fiscais": []
+            "Notas_Fiscais": [],
+            "Cliente_Nome": cliente_nome,
+            "Cliente_Cidade": cliente_cidade,
+            "Transportadora_Nome": transportadora_nome,
+            "Transportadora_CNPJ": transportadora_cnpj
         }
 
-        # Coleta os dados das notas fiscais
-        for entry in notas_fiscais_entries:
-            numero = entry['numero'].get()
-            peso = entry['peso'].get()
-            volumes = entry['volumes'].get()
-            if numero and peso and volumes:
-                dados["Notas_Fiscais"].append({
-                    "Numero": numero,
-                    "Peso": peso,
-                    "Volumes": volumes
-                })
+        # Gera o Excel com os dados preenchidos
+        gerar_excel_com_modelo(modelo_path, "output/decl_transporte.xlsx", dados)
 
-        if not all(dados.values()):
-            messagebox.showerror("Erro", "Preencha todos os campos obrigatórios.")
+        if not dados["Codigo_Cliente"] or not dados["Codigo_Transportadora"] or not dados["Placa"]:
+            messagebox.showerror("Erro", "Os campos Código do Cliente, Código da Transportadora e Placa são obrigatórios.")
             return
 
         try:
@@ -104,13 +110,14 @@ def iniciar_interface():
             'peso': ttk.Entry(root, width=10),
             'volumes': ttk.Entry(root, width=10)
         }
-        ttk.Label(root, text=f"Nota Fiscal {len(notas_fiscais_entries) + 1}:").grid(row=row, column=0, pady=5, sticky="e")
-        nota_fields['numero'].grid(row=row, column=1, padx=5)
-        ttk.Label(root, text="Peso:").grid(row=row, column=2, padx=5)
-        nota_fields['peso'].grid(row=row, column=3, padx=5)
-        ttk.Label(root, text="Volumes:").grid(row=row, column=4, padx=5)
-        nota_fields['volumes'].grid(row=row, column=5, padx=5)
+        ttk.Label(root, text=f"Nota Fiscal {len(notas_fiscais_entries) + 1}:").grid(row=row, column=0, pady=2, padx=5, sticky="e")
+        nota_fields['numero'].grid(row=row, column=1, pady=2, padx=5)
+        ttk.Label(root, text="Peso:").grid(row=row, column=2, pady=2, padx=5, sticky="e")
+        nota_fields['peso'].grid(row=row, column=3, pady=2, padx=5)
+        ttk.Label(root, text="Volumes:").grid(row=row, column=4, pady=2, padx=5, sticky="e")
+        nota_fields['volumes'].grid(row=row, column=5, pady=2, padx=5)
         notas_fiscais_entries.append(nota_fields)
+
 
     # Configuração da janela principal
     root = tk.Tk()

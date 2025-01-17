@@ -1,26 +1,27 @@
-import openpyxl
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+from reportlab.pdfgen import canvas
+import os
+
 
 def gerar_excel_com_modelo(modelo_path, output_path, dados):
+    """
+    Gera um arquivo Excel baseado em um modelo e preenche os dados fornecidos.
+    :param modelo_path: Caminho do modelo Excel.
+    :param output_path: Caminho de saída do arquivo Excel gerado.
+    :param dados: Dicionário com os dados a serem preenchidos.
+    """
     try:
-        # Carrega o modelo do Excel
-        workbook = openpyxl.load_workbook(modelo_path)
+        # Carrega o modelo Excel
+        workbook = load_workbook(modelo_path)
         sheet = workbook.active
 
-        # Função auxiliar para evitar erros com células mescladas
-        def set_value(cell_address, value):
-            cell = sheet[cell_address]
-            # Verifica se a célula é mesclada
-            if cell.coordinate in sheet.merged_cells:
-                # Apenas a célula superior esquerda da mesclagem pode receber o valor
-                for merged_range in sheet.merged_cells.ranges:
-                    if cell.coordinate in merged_range:
-                        top_left_cell = sheet[merged_range.min_row][merged_range.min_col - 1]
-                        top_left_cell.value = value
-                        return
-            else:
-                cell.value = value
+        # Função auxiliar para definir valores no Excel
+        def set_value(cell, value):
+            """Define um valor em uma célula específica."""
+            sheet[cell] = value
 
-        # Preenche os dados gerais
+        # Preenche os campos no modelo Excel
         set_value("V5", dados.get("Codigo_Cliente", "N/A"))
         set_value("V6", dados.get("Codigo_Transportadora", "N/A"))
         set_value("D9", dados.get("Motorista", "N/A"))
@@ -40,9 +41,36 @@ def gerar_excel_com_modelo(modelo_path, output_path, dados):
             sheet[f"N{linha_inicial}"] = nf.get("Volumes", "N/A")
             linha_inicial += 1  # Incrementa a linha para a próxima nota fiscal
 
-        # Salva o arquivo preenchido
+        # Salva o arquivo Excel gerado
         workbook.save(output_path)
-        print(f"Arquivo gerado com sucesso: {output_path}")
-
+        print(f"Arquivo Excel gerado com sucesso em: {output_path}")
     except Exception as e:
-        raise RuntimeError(f"Erro ao gerar Excel: {e}")
+        print(f"Erro ao gerar Excel: {e}")
+        raise
+
+
+def transformar_excel_em_pdf(excel_path, pdf_path):
+    """
+    Converte um arquivo Excel gerado em um arquivo PDF.
+    :param excel_path: Caminho do arquivo Excel.
+    :param pdf_path: Caminho onde o PDF será salvo.
+    """
+    try:
+        # Carrega o Excel
+        workbook = load_workbook(excel_path)
+        sheet = workbook.active
+
+        # Cria o PDF
+        c = canvas.Canvas(pdf_path)
+        c.setFont("Helvetica", 10)
+
+        y = 800  # Posição inicial no PDF
+        for row in sheet.iter_rows(values_only=True):
+            linha = " | ".join(str(cell) for cell in row if cell is not None)
+            c.drawString(30, y, linha)
+            y -= 20
+
+        c.save()
+        print(f"PDF gerado em: {pdf_path}")
+    except Exception as e:
+        print(f"Erro ao converter Excel para PDF: {e}")

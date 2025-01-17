@@ -1,32 +1,24 @@
-import pandas as pd
+import aiosqlite
 
-BASE_DADOS = "assets/base_dados.xlsx"
 
-def ler_base():
-    """Lê a base de dados do arquivo Excel."""
+async def buscar_por_codigo(codigo):
+    """
+    Busca informações no banco de dados pelo código.
+    :param codigo: Código do cliente ou transportadora.
+    :return: Dicionário com as informações ou None se não encontrado.
+    """
     try:
-        df = pd.read_excel(BASE_DADOS, dtype={'codigo': str})  # Garante que 'codigo' seja string
-        print(f"Base de dados lida com sucesso. Colunas: {df.columns}")
-        return df
-    except FileNotFoundError:
-        raise FileNotFoundError("Base de dados não encontrada.")
+        async with aiosqlite.connect("database/transporte.db") as conn:
+            cursor = await conn.execute("SELECT * FROM tabela WHERE codigo = ?", (codigo,))
+            result = await cursor.fetchone()
+            if result:
+                return {
+                    "codigo": result[0],
+                    "nome": result[1],
+                    "cnpj": result[2],
+                    "cidade": result[3],
+                }
+            return None
     except Exception as e:
-        raise RuntimeError(f"Erro ao ler a base de dados: {e}")
-
-def buscar_cliente(codigo):
-    """Busca um cliente pelo código."""
-    df = ler_base()
-    codigo = str(codigo).zfill(6)  # Garante que o código tenha 6 dígitos
-    print(f"Buscando cliente com código: {codigo}")
-    resultado = df[df['codigo'] == codigo]
-    print(f"Resultado da busca:\n{resultado}")
-    return resultado
-
-def buscar_transportadora(codigo):
-    """Busca uma transportadora pelo código."""
-    df = ler_base()
-    codigo = str(codigo).zfill(6)  # Garante que o código tenha 6 dígitos
-    print(f"Buscando transportadora com código: {codigo}")
-    resultado = df[df['codigo'] == codigo]
-    print(f"Resultado da busca:\n{resultado}")
-    return resultado
+        print(f"Erro ao buscar no banco de dados: {e}")
+        return None
